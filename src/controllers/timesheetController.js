@@ -137,50 +137,6 @@ const getTimesheetsByManagerAndDateRange = async (req, res) => {
   }
 };
 
-// const approveTimesheet = async (req, res) => {
-//   try {
-//     const { employeeIds, startDate, endDate } = req.body;
-//     const isValidDateFormat = (dateString) => {
-//       const regex = /^\d{4}-\d{2}-\d{2}$/;
-//       return regex.test(dateString);
-//     };
-
-//     if (!isValidDateFormat(startDate) || !isValidDateFormat(endDate)) {
-//       return res.status(400).json({ error: 'Invalid date format for startDate or endDate' });
-//     }
-
-//     const updateResult = await prisma.timesheet.updateMany({
-//       where: {
-//         EmployeeID: {
-//           in: employeeIds, 
-//         },
-//         Date: {
-//           gte: new Date(startDate),
-//           lte: new Date(endDate),
-//         },
-//       },
-//       data: {
-//         Status: 'approved',
-//       },
-//     });
-//     const updatedTimesheets = await prisma.timesheet.findMany({
-//       where: {
-//         EmployeeID: {
-//           in: employeeIds,
-//         },
-//         Date: {
-//           gte: new Date(startDate),
-//           lte: new Date(endDate),
-//         },
-//       },
-//     });
-//     const approvedTimesheets = updatedTimesheets.filter((timesheet) => timesheet.Status === 'approved');
-//     res.json(approvedTimesheets);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// };
 const approveTimesheet = async (req, res) => {
   try {
     const { employeeIds, startDate, endDate } = req.body;
@@ -258,7 +214,6 @@ for (const employeeId of employeeIds) {
       Email: true,
     },
   });
-
 
 }
 console.log(updatedTimesheets)

@@ -513,7 +513,7 @@ const generateEmployeesCSVData = async (employeeIds, startDate, endDate) => {
   });
 
   const employeesData = await Promise.all(employeesDataPromises);
-  console.log(employeesData);
+ 
   return employeesData;
 };
 
@@ -560,14 +560,37 @@ const exportEmployeeCSVs = async (req, res) => {
 const getEmployeeLeaves = async (employeeId) => {
   try {
     const response = await axios.get(`http://localhost:4000/auth/user-leaves/${employeeId}`);
-    console.log('Axios Response:', response.data);
     return response.data.leaves; 
   } catch (error) {
     console.error(`Error fetching leaves for employee ${employeeId}:`, error);
     return [];
   }
 };
+const getMonthWiseLeaves = (leaves, startDate, endDate) => {
+  const monthWiseLeaves = {};
+  const start = new Date(startDate);
+  const end = new Date(endDate);  
+  leaves.forEach((leave) => {
+    const leaveDate = new Date(leave.from_date);
+    
+    // Check if the leave is within the specified date range
+    if (leaveDate >= start && leaveDate <= end) {
+      const month = format(leaveDate, 'MMMM', { locale: enUS });
 
+      if (!monthWiseLeaves[month]) {
+        monthWiseLeaves[month] = [];
+      }
+
+      monthWiseLeaves[month].push({
+        leaveday: leave.leaveday,
+        from_date: leave.from_date,
+        to_date: leave.to_date,
+      });
+    }
+  });
+
+  return monthWiseLeaves;
+};
 const generateEmployeeCSVDatas = async (employeeIds, startDate, endDate) => {
   if (!Array.isArray(employeeIds)) {
     employeeIds = [employeeIds];
@@ -588,8 +611,9 @@ for (const employeeId of employeeIds) {
     continue; 
   }
     const timesheets = await getEmployeeTimesheets(employee, startDate, endDate);  
+    console.log(timesheets)
     const leaves = await getEmployeeLeaves(employeeId);   
-    // const monthWiseLeaves = getMonthWiseLeaves(leaves, startDate, endDate);
+    const monthWiseLeaves = getMonthWiseLeaves(leaves, startDate, endDate);
     const totalLeaves = leaves.length;
     const employeeData = {
       'Name': `${employee.FirstName} ${employee.LastName}`,
@@ -637,14 +661,30 @@ projects.forEach((project) => {
     employeeData['Project Name'] = projectNames.join(',')
     employeeData['Total Actual Hours'] = totalActualHours;
     employeeData['Total Billable Hours'] = totalBillableHours;
-    employeeData['Comments'] = `Total Leaves Taken: ${totalLeaves}`;
-    console.log(totalLeaves)
+//     employeeData['Comments'] = `Total Leaves Taken: ${totalLeaves}`;
+//     console.log(totalLeaves)
+//     employeesData.push(employeeData);
+//   }
+//   console.log(employeesData)
+//   return employeesData;
+// };
+const leaveComments = generateLeaveComments(monthWiseLeaves);
+    employeeData['Comments'] = `Total Leaves Taken: ${totalLeaves}${leaveComments}`;
     employeesData.push(employeeData);
   }
-  console.log(employeesData)
   return employeesData;
 };
 
+
+const generateLeaveComments = (monthWiseLeaves) => {
+  let leaveComments = '';
+  for (const [month, leaves] of Object.entries(monthWiseLeaves)) {
+    for (const leave of leaves) {
+      leaveComments += `\n${month}: ${leave.leaveday} (${leave.from_date} to ${leave.to_date})`;
+    }
+  }
+  return leaveComments;
+};
 const getEmployeeTimesheets = async (employee, startDate, endDate) => {
   const timesheets = await prisma.timesheet.findMany({
     where: {
@@ -660,9 +700,6 @@ const getEmployeeTimesheets = async (employee, startDate, endDate) => {
 };
 
 const getWeekData = (timesheets, weekNumber, employee) => {
-  console.log(`Calculating Week ${weekNumber} Data`);
-  console.log(`Timesheets for Week ${weekNumber}: `, timesheets.length);
-
   const weekData = {
     'Week': weekNumber,
     'Actual Hours': 40,
@@ -673,15 +710,12 @@ const getWeekData = (timesheets, weekNumber, employee) => {
     const timesheetWeekNumber = (0 | new Date(timesheet.Date).getDate() / 7)+1;   
 
     if (timesheetWeekNumber === weekNumber) {
-      console.log(`Matched for Week ${weekNumber}: `, timesheet);
-      console.log(`Actual Hours: ${timesheet.ActualHours}, Default Hours: ${employee.DefaultHours}`);
-      
+    
       weekData['Actual Hours'] = 40;
       weekData['Billable Hours'] += parseFloat(timesheet.HoursWorked) || 0;
     }
   });
-
-  console.log(`Week ${weekNumber} Data: `, weekData);
+ console.log(weekData)
   return weekData;
 };
 
@@ -692,11 +726,11 @@ const calculateTotalActualHours = (employee, startDate, endDate, targetTotalHour
   const targetTotalActualHours = targetTotalHours || 200;
   const adjustedDefaultHours = targetTotalActualHours / 5; 
   const totalActualHours = adjustedDefaultHours * 5; 
-  console.log(totalActualHours);
   return totalActualHours;
 };
 
 const calculateTotalBillableHours = (timesheets) => {
+ 
   const totalBillableHours = timesheets.reduce((total, timesheet) => total + parseFloat(timesheet.HoursWorked),0)
   return totalBillableHours;
 };

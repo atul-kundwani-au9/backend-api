@@ -10,8 +10,8 @@ datasource db {
 
 // Employee table
 model Employee {
-  EmployeeID     Int      @id @default(autoincrement())
-  EmployeeCode   String     @default("")  
+  EmployeeID     Int          @id @default(autoincrement())
+  EmployeeCode   String       @default("")  
   FirstName      String
   LastName       String       @default("")  
   Email          String     
