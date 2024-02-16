@@ -119,18 +119,31 @@ const createManagerEmployeesWithHours = async (req, res) => {
   try {
     const { managerId, startDate, endDate } = req.body;
 
-    const managerEmployees = await prisma.managerEmployee.findMany({
+    // const managerEmployees = await prisma.managerEmployee.findMany({
+    //   where: {
+    //     managerId: parseInt(managerId),
+    //   },
+    //   include: {
+    //     manager: true,
+    //     employee: true,
+    //   },
+    // });
+
+    const employees1 = await prisma.employee.findMany({
       where: {
-        managerId: parseInt(managerId),
-      },
-      include: {
-        manager: true,
-        employee: true,
+        EmployeeID: parseInt(managerId) 
+      }
+    });
+   
+    const managerEmployees = await prisma.employee.findMany({
+      where: {
+        reporting_manager_id: employees1[0].EmployeeCode
       },
     });
-    
-    const managerEmployeesWithHours = await Promise.all(managerEmployees.map(async (relation) => {
-      const emps = Array.isArray(relation.employee) ? relation.employee : [relation.employee];
+
+    const managerEmployeesWithHours = await Promise.all(employees1.map(async (relation) => {
+      const emps = Array.isArray(managerEmployees) ? managerEmployees : [managerEmployees];
+
       const list_of_timesheets = [];
     
       for (const emp of emps) {

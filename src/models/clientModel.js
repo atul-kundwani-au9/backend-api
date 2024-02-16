@@ -11,7 +11,10 @@ const getClients = async () => {
   return prisma.client.findMany();
 };
 
+
+
 module.exports = {
+ 
   createClient,
   getClients,
 };

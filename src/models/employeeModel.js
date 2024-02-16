@@ -7,10 +7,10 @@ const createEmployee = async (data) => {
     data,
   });
 };
-const getEmployeeByEmail = async (email) => {
+const getEmployeeByEmail = async (Email) => {
   return prisma.employee.findUnique({
     where: {
-      Email: email,
+      Email: Email,
     },
   });
 };
@@ -51,7 +51,11 @@ const resetPassword = async (employeeId, newPassword) => {
     },
   });
 };
+
+
+
 module.exports = {
+ 
   resetPassword,
   createEmployee,
   getEmployeeByEmail,

@@ -14,12 +14,17 @@ model Employee {
   EmployeeCode   String       @default("")  
   FirstName      String
   LastName       String       @default("")  
-  Email          String     
+  Email          String       @unique
   Password       String
   Admin          Int
   EmployeeType   String   // Assuming "regular" or "manager"
    clientId       Int?     // Nullable field if applicable
-  
+   reporting_manager_name  String         @default("")
+  l2_manager_name          String         @default("")           
+  l2_id                   String           @default("")
+  reporting_manager_id    String            @default("")
+
+
   // Default Values
   DefaultHours    Float    @default(8)                 
   DefaultProject  String   @default("")  
@@ -27,7 +32,7 @@ model Employee {
   DefaultProjectId String  @default("") 
 // Derived field for full name
   name            String   @map("concat(FirstName, ' ', LastName)")
-
+ // Remove reporting_manager and l2_manager fields
   // Relationships
   Timesheets         Timesheet[]
   managingEmployees  ManagerEmployee[] @relation("ManagerEmployees_manager")

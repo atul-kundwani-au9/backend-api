@@ -74,26 +74,36 @@ const getEmployeeReport = async (req, res) => {
 const getManagerReport = async (req, res) => {
   try {
     const { managerId, startDate, endDate } = req.body;
-    const managedEmployees = await prisma.managerEmployee.findMany({
+    // const managedEmployees = await prisma.managerEmployee.findMany({
+    //   where: {
+    //     managerId: parseInt(managerId),
+    //   },
+    //   select: {
+    //     employeeId: true,
+    //     employee: {
+    //       select: {
+    //         FirstName: true,
+    //         LastName: true,
+    //       },
+    //     },
+    //   },
+    // });
+    const employees1 = await prisma.employee.findMany({
       where: {
-        managerId: parseInt(managerId),
-      },
-      select: {
-        employeeId: true,
-        employee: {
-          select: {
-            FirstName: true,
-            LastName: true,
-          },
-        },
+        EmployeeID: parseInt(managerId) 
+      }
+    });
+    const managerEmployees = await prisma.employee.findMany({
+      where: {
+        reporting_manager_id: employees1[0].EmployeeCode
       },
     });
 
     const employeesReport = await Promise.all(
-      managedEmployees.map(async (managedEmployee) => {
+      managerEmployees.map(async (managedEmployee) => {
         const submittedTimesheets = await prisma.employee.findMany({
           where: {
-            EmployeeID: managedEmployee.employeeId,
+            EmployeeID: managedEmployee.EmployeeID,
             Timesheets: {
               some: {
                 Date: {
@@ -110,13 +120,14 @@ const getManagerReport = async (req, res) => {
         });
 
         return {
-          employeeId: managedEmployee.employeeId,
-          FirstName: managedEmployee.employee.FirstName,
-          LastName: managedEmployee.employee.LastName,
+          employeeId: managedEmployee.EmployeeID,
+          FirstName: managedEmployee.FirstName,
+          LastName: managedEmployee.LastName,
           submitted: submittedTimesheets.length > 0,
         };
       })
     );
+    console.log(employeesReport);
 
     const submittedEmployees = employeesReport.filter((employee) => employee.submitted);
     const notSubmittedEmployees = employeesReport.filter((employee) => !employee.submitted);

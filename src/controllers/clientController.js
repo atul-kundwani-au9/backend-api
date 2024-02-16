@@ -65,6 +65,7 @@ try {
     data: {
       EmployeeCode: externalEmployee.employeeId,
       FirstName: externalEmployee.firstname,
+      LastName:externalEmployee.lastname || "",
       Email: externalEmployee.emailaddress,
       Password: hashedPassword,
       Admin: externalEmployee.emprole_name === "Management" ? 1 : 0,
@@ -75,6 +76,13 @@ try {
       DefaultClient: externalEmployee.defaultClient || '',
       DefaultProjectId: externalEmployee.defaultProjectId || '',
       name: externalEmployee.firstname,
+      l2_manager_name: externalEmployee.l2_manager_name || "",
+      reporting_manager_name: externalEmployee.reporting_manager_name || "",
+      reporting_manager:externalEmployee.reporting_manager ,
+      l2_manager:externalEmployee.l2_manager , 
+      l2_id:externalEmployee.l2_id,   
+      reporting_manager_id:externalEmployee.reporting_manager_id  
+
     },
   });
 
@@ -95,9 +103,56 @@ console.error(error.message);
 res.status(500).json({ error: 'Internal Server Error' });
 }
 };
+const getManagerEmployeeCounts = async (req, res) => {
+  try {
+   
+    const managers = await prisma.employee.findMany({
+      where: {
+        EmployeeType: 'manager'
+      },
+      include: {
+        managingEmployees: {
+          select: {
+            employeeId: true
+          }
+        }
+      }
+    });
+   
+    const managerEmployeeCountMap = new Map();   
+    managers.forEach(manager => {
+      const employeeCount = manager.managingEmployees.length;
+      managerEmployeeCountMap.set(manager.EmployeeID, employeeCount);
+    });
 
+    // Return the result
+    res.json({ status: 'success', managerEmployeeCounts: Array.from(managerEmployeeCountMap.entries()) });
+  } catch (error) {
+    console.error('Error fetching manager employee counts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getEmployeesUnderManager = async (req, res) => {
+  try {
+    const { employeeId } = req.params;   
+    const employees = await prisma.employee.findMany({
+      where: {
+        reporting_manager_id: employeeId 
+      }
+    });
+
+    // Return the result
+    res.json({ status: 'success', data: employees });
+  } catch (error) {
+    console.error('Error fetching employees under manager:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 module.exports = {
+  getEmployeesUnderManager,
+  getManagerEmployeeCounts,
   getEmployeeDetails,
   createClient,
   getClientList,
