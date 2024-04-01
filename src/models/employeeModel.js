@@ -11,10 +11,17 @@ const getEmployeeByEmail = async (Email) => {
   return prisma.employee.findUnique({
     where: {
       Email: Email,
+      isActive:1
     },
   });
 };
-
+const getEmployeeById = async (employeeId) => {
+  return prisma.employee.findUnique({
+    where: {
+      EmployeeID: employeeId,
+    },
+  });
+};
 const getEmployees = async () => {
   return prisma.employee.findMany();
 };
@@ -55,7 +62,7 @@ const resetPassword = async (employeeId, newPassword) => {
 
 
 module.exports = {
- 
+  getEmployeeById,
   resetPassword,
   createEmployee,
   getEmployeeByEmail,

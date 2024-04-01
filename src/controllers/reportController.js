@@ -74,25 +74,16 @@ const getEmployeeReport = async (req, res) => {
 const getManagerReport = async (req, res) => {
   try {
     const { managerId, startDate, endDate } = req.body;
-    // const managedEmployees = await prisma.managerEmployee.findMany({
-    //   where: {
-    //     managerId: parseInt(managerId),
-    //   },
-    //   select: {
-    //     employeeId: true,
-    //     employee: {
-    //       select: {
-    //         FirstName: true,
-    //         LastName: true,
-    //       },
-    //     },
-    //   },
-    // });
+    
     const employees1 = await prisma.employee.findMany({
       where: {
         EmployeeID: parseInt(managerId) 
       }
     });
+    // if (!employees1 || employees1.length === 0) {
+    //   return res.status(400).json({ error: 'Manager not found' });
+    // }
+
     const managerEmployees = await prisma.employee.findMany({
       where: {
         reporting_manager_id: employees1[0].EmployeeCode
@@ -146,8 +137,27 @@ const getManagerReport = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+// const createClientReport = async (req, res) => {
+//   try {
+//     // Extract client ID and status from the request body
+//     const { clientId, status } = req.body;
 
+//     // Process the data - for demonstration, let's just echo back the data
+//     const response = {
+//       clientId: clientId,
+//       status: status
+//     };
+
+//     // Respond with success message
+//     res.status(200).json({ status: 'success', data: response });
+//   } catch (error) {
+//     console.error(error);
+//     // Respond with an error message
+//     res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+//   }
+// };
 module.exports = {
+  
   getManagerReport,
   getClientReport,
   getProjectReport,

@@ -9,4 +9,5 @@ router.get('/profile/:employeeId', authMiddleware.authenticate, employeeControll
 router.get('/employeelist', employeeController.getEmployeewithManager);
 router.post('/reset-password/:employeeId', authMiddleware.authenticate, employeeController.resetEmployeePassword);
 router.post('/registerWithEmailAndId', employeeController.registerEmployeeWithEmailAndId);
+router.get('/totalcounts', employeeController.getTotalCounts); 
 module.exports = router;

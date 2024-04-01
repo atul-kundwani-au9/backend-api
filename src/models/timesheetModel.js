@@ -10,9 +10,8 @@ const getTimesheets = async () => {
   });
 };
 
-
 const createTimesheet = async (data) => {
-  const { EmployeeID, ProjectID, Date, HoursWorked, Status, Description } = data;
+  const { EmployeeID, ProjectID, Date, HoursWorked, Status, Description,WorkFromHome } = data;
   const existingTimesheet = await prisma.timesheet.findFirst({
     where: {
       EmployeeID: EmployeeID,
@@ -38,6 +37,7 @@ const createTimesheet = async (data) => {
       HoursWorked,
       Status,
       Description,
+      WorkFromHome
     },
   });
 
@@ -47,6 +47,7 @@ const createTimesheet = async (data) => {
 const getTimesheetsByEmployeeAndDateRange = async (employeeId, startDate, endDate) => {
   return prisma.timesheet.findMany({
     where: {
+      isActive:1,
      
       EmployeeID: employeeId,
       Date: {

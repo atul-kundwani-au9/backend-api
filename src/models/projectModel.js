@@ -8,11 +8,25 @@ const createProject = async (data) => {
   });
 };
 
+
 const getProjects = async () => {
   return prisma.project.findMany();
 };
 
+const associateProjectsToEmployee = async (employeeId, projectIds) => { 
+  const updatedEmployee = await prisma.employee.update({
+    where: { EmployeeID: employeeId },
+    data: {
+      projects: { 
+        connect: projectIds.map(projectId => ({ ProjectID: projectId }))
+      }
+    },
+  });
+
+  return updatedEmployee;
+};
 module.exports = {
+  associateProjectsToEmployee,
   createProject,
   getProjects,
 };

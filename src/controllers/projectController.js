@@ -1,5 +1,7 @@
 
 const projectModel = require('../models/projectModel');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 const createProject = async (req, res) => {
   try {
@@ -28,7 +30,29 @@ const getProjectList = async (req, res) => {
   }
 };
 
-module.exports = {
+
+const associateProjectsToEmployee = async (req, res) => {
+  try {
+    const { employeeId, projectIds } = req.body;
+  
+    await projectModel.associateProjectsToEmployee(employeeId, projectIds);
+    res.json({ 
+      status: 'success', 
+      message: 'Projects associated with employee successfully',
+      data: {
+        employeeId,
+        projectIds
+      }
+    });
+  } catch (error) {
+    console.error('Error associating projects with employee:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+module.exports = { 
+  associateProjectsToEmployee,
   createProject,
   getProjectList,
 };

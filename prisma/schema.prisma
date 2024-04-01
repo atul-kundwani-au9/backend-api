@@ -23,9 +23,12 @@ model Employee {
   l2_manager_name          String         @default("")           
   l2_id                   String           @default("")
   reporting_manager_id    String            @default("")
-
-
-  // Default Values
+  reporting_manager       Int              @default(0)
+  l2_manager             Int               @default(0)
+  Version                String             @default("")
+  isActive              Int
+             
+  // Default Values 
   DefaultHours    Float    @default(8)                 
   DefaultProject  String   @default("")  
   DefaultClient   String   @default("")  
@@ -34,9 +37,11 @@ model Employee {
   name            String   @map("concat(FirstName, ' ', LastName)")
  // Remove reporting_manager and l2_manager fields
   // Relationships
+     
   Timesheets         Timesheet[]
   managingEmployees  ManagerEmployee[] @relation("ManagerEmployees_manager")
   employeesManagedBy ManagerEmployee[] @relation("ManagerEmployees_employee")
+  projects                 Project[]         @relation("EmployeeProjects")
 }
 
 // Client table
@@ -45,7 +50,8 @@ model Client {
   ClientName    String
   ContactPerson String
   ContactEmail  String
-
+ status           Int
+ client_code      String
   // Relationships
   Projects Project[]
 }
@@ -55,32 +61,45 @@ model Project {
   ProjectID   Int      @id @default(autoincrement())
   ProjectName String
   ClientID    Int
-   
+  assigned_hours  Int 
   // Relationships
   Client     Client      @relation(fields: [ClientID], references: [ClientID])
   Timesheets Timesheet[]
+   employees  Employee[]  @relation("EmployeeProjects")
 }
-
+// Miscellaneous table
+model Miscellaneous {
+  MiscellaneousID  Int      @id @default(autoincrement())
+  GoogleClientID   String
+  Status           Boolean
+ 
+  
+}
 // Timesheet table
 model Timesheet {
-  TimesheetID Int      @id @default(autoincrement())
-  EmployeeID  Int
-  ProjectID   Int
-  Date        DateTime
-  Status      String
-  HoursWorked Float
-  Description String
+  TimesheetID     Int      @id @default(autoincrement())
+  EmployeeID      Int
+  EmployeeCode    String   @default("")   // New field
+  ProjectID       Int
+  Date            DateTime
+  Status          String
+  HoursWorked     Float
+  Description     String
   RejectionComment String  @default("")
-  Comment           String  @default("")
+  Comment         String    @default("")
+  WorkFromHome    Int 
+  isActive        Int       @default(1)  
+
   // Relationships
-  Employee Employee @relation(fields: [EmployeeID], references: [EmployeeID])
-  Project  Project  @relation(fields: [ProjectID], references: [ProjectID])
+  Employee        Employee @relation(fields: [EmployeeID], references: [EmployeeID])
+  Project         Project  @relation(fields: [ProjectID], references: [ProjectID])
 }
 
 // ManagerEmployee table
 model ManagerEmployee {
   managerId  Int // Manager ID
   employeeId Int // Employee ID
+
 
   // Relationships
   manager  Employee @relation("ManagerEmployees_manager", fields: [managerId], references: [EmployeeID])
@@ -89,4 +108,22 @@ model ManagerEmployee {
   // Composite primary key
   @@id([employeeId, managerId])
 }
+
+// Leave table
+model Leave {
+  LeaveID            Int        @id @default(autoincrement())
+  EmployeeCode       String
+  FirstName          String
+  LastName           String
+  LeaveTypeID        Int
+  LeaveDay           Int
+  FromDate           DateTime
+  ToDate             DateTime
+  Reason             String
+  leavestatus        String
+  createdAt          DateTime   @default(now()) // Automatically set to current datetime on creation
+  updatedAt          DateTime   @updatedAt     // Automatically set to current datetime on update  
+}
+
+
 
